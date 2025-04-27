@@ -34,7 +34,7 @@ TEXTS = [
     garpike and stingray are also present.'''
 ]
 
-registeredUsers = {
+registeredUsers = { #list (dict) of users, who are currently registered, 'user name': 'password'
     'bob': '123', 
     'ann': 'pass123', 
     'mike': 'password123', 
@@ -43,13 +43,13 @@ registeredUsers = {
 }
 
 n = 40 #separator line --- length
-import time
+import time #importing library for implementing the delay before terminating the program
 
 #checking if user is registered
-userName = input('Username: ')
-userPass = input('Password: ')
-for (userCheck, passCheck) in (registeredUsers.items()):
-    if userName == userCheck and userPass == passCheck:
+userName = input('Username: ') #getting user name from user
+userPass = input('Password: ') #getting password from user
+for (userCheck, passCheck) in (registeredUsers.items()): #userCheck and passCheck are user name and corresponding password taken from registeredUsers dict
+    if userName.lower() == userCheck.lower() and userPass == passCheck:  #we compare user name and password we've got from user with ones we have (user name isn't case sensitive)
         break
 else:
     while True:
@@ -58,107 +58,89 @@ else:
         quit()
 
 print('-' * n)
-print('Welcome to the app,', userName)
+print('Welcome to the app,', userName.lower())
 print('We have', len(TEXTS), 'texts to be analyzed.')
 print('-' * n)
 
 #texts chosing 
 print('Enter a number btw. 1 and', len(TEXTS), end=' ')
-textNumber = int(input('to select: '))
+textNumber = input('to select: ') #getting text number from user
 print('-' * n)
-if 1 <= textNumber <= len(TEXTS):
+if textNumber.isdigit() and 1 <= int(textNumber) <= len(TEXTS): #check if data from user is digit and in existing texts range
     pass
 else:
     print('Invalid value. Terminating the program...')
     time.sleep(3) #delay before terminating in sec
     quit()
 
-#creating list from selected text
-selText = TEXTS[textNumber - 1] #because we count from 0
-formatText = [] #selText is just letters, we create an empty list for filling with words
-slovo = ''
-for el in selText:
-    if el.isalnum():
-        slovo = slovo + el
+#preparing selected text for analyse
+#as now the selected text is just one big string, let's divide it by words, then word by word add it to the list
+formatText = [] #creating an empty list to fill, formatted text
+slovo = '' #creating something like a box, to fill it with letters or numbers, when the word is ready, we transfer it to the formatText list as new element
+for el in TEXTS[int(textNumber) - 1]: #starting to grab every el - element of the string in the selected text
+    if el.isalnum():                  #if the element is digit or letter
+        slovo = slovo + el            #add it to the 'box' slovo 
     else:
-        formatText.append(slovo)
-        slovo = str()        
+        formatText.append(slovo)      #if the next element is something else, then it was the end of the word, so we transfer it from the box to the list formatText
+        slovo = str()                 #and clear the box
 
 #tasks to analyse
-#1: amount of words
-allWordsAmount = 0
-for el1 in formatText:
-    if el1.isalpha() or el1.isdigit():  #delete el1.isdigit() for counting only words
-        allWordsAmount = allWordsAmount + 1
+allWordsAmount = 0 #1: amount of words in text
+capWords = 0       #2: words starting with the capital letter
+upperCaseWords = 0 #3: amount of uppercase words
+lowerCaseWords = 0 #4: amount of lowercase words
+numStr = 0         #5: amount of numeric strings
+sumStr = 0         #6: sum of numbers
 
-#2: words starting with capital letter
-capWords = 0
-for el2 in formatText:
-    if el2.istitle():
-        capWords = capWords + 1
-
-#3: capsed words
-wholeCapWords = 0
-for el3 in formatText:
-    if el3.isupper():
-        wholeCapWords = wholeCapWords + 1
-
-#4: amount of lowercase words
-lowerWords = 0
-for el4 in formatText:
-    if el4.islower():
-        lowerWords = lowerWords + 1
-
-#5 and 6: amount of numeric strings and their sum
-numStr = 0  #amount of numeric strings
-sumStr = 0  #sum of numbers
-for el5 in formatText:
-    if el5.isdigit():
-        numStr = numStr + 1
-        sumStr = sumStr + int(el5)
+for word in formatText: #associating variable word with element from formatText and analysing it
+    if word.isalpha() or word.isdigit():  #if it's a word or number
+        allWordsAmount = allWordsAmount + 1 #increase the counter by 1 and
+        if word.istitle():                   #in case it's in titlecase
+            capWords = capWords + 1          #insrease the titlecase counter by 1
+        elif word.isupper():                 
+            upperCaseWords = upperCaseWords + 1
+        elif word.islower():
+            lowerCaseWords = lowerCaseWords + 1
+        elif word.isdigit():                 #in case it's a number
+            numStr = numStr + 1              #increase numbers counter by 1
+            sumStr = sumStr + int(word)      #add the number to the previous found number value to get the sum
 
 #displaying summarise info
 print('There are', allWordsAmount, 'words in the selected text.')
 print('There are', capWords, 'titlecase words.')
-print('There are', wholeCapWords, 'uppercase words.')
-print('There are', lowerWords, 'lowercase words.')
+print('There are', upperCaseWords, 'uppercase words.')
+print('There are', lowerCaseWords, 'lowercase words.')
 print('There are', numStr, 'numeric strings.')
 print('The sum of all the numbers', sumStr, end='.\n')
 
-#separator
+#words length statistics
 print('-' * n)
 print('LEN|', '     OCCURENCES    ', '|NR.')
 print('-' * n)
 
-#words length statistics
-lenStat = dict()
-lenValue = 0
-for el6 in formatText:
-    if el6.isalpha() or el6.isdigit():  #check that the word is not a spacebar. Delete el6.isdigit() condition for counting only words without numbers
-        lenKey = str(len(el6))      #add to variable stringified length of word in el6
-        for el7 in lenStat.keys(): 
-            if el7 == lenKey:       #if the key is already in dict lenStat
-                break               #exit the cycle    
-        else:
-            lenStat[lenKey] = 0     #if the key is not in the dict, write that key length as key with value 0
-        lenValue = lenStat[lenKey] + 1
-        lenStat[lenKey] = lenValue  
+#we need to find out the lengths of the words in text, how many kinds of them exist and how many words of each kind are present in the selected text.
+#we'll use the previous generated list formatText as it contains all the data we need
+#the idea is to create the dict, where the keys would be the lengths presented in the text, and corresponded values would be amounts of words of that length
+lenStat = dict() #create empty dict we later fill with lengths and amounts
+lenValue = 0     #this variable is amount of corresponding word length, later to be written as dict value, set as 0 for now
+for word in formatText:                   #associate the element from formatText list (word in this case) to variable word and check it
+    if word.isalpha() or word.isdigit():   #if it is word or number
+        lenKey = int(len(word))             #count the number of characters in the word and associate to the variable. This is a key name we work with.
+        for key in lenStat.keys():          #then we need to check, if the key name we've just got is already exists in lenStat
+            if key == lenKey:                #if the key is already in the dict
+                break                          #exit the cycle (without adding a key)   
+        else:                               #if the key is not present in the dict
+            lenStat[lenKey] = 0              #write that key with value 0 to the dict lenStat
+        lenValue = lenStat[lenKey] + 1      #increase the value corresponded to lenKey (the key we currently work with) by 1
+        lenStat[lenKey] = lenValue          #add the value we've got to the key we currently work with to the lenStat
 
-#sorting dictionary so that keys (numbers of letters) are in ascending order
-sortedDict = dict(sorted(lenStat.items()))  #first sorting, but it returns 1, 10, 11, 2, 20 etc
-sortedStat = dict()     #for 1 to 9
-sortedStat2 = dict()    #for >10
-for j in sortedDict:
-    if int(j) <= 9:
-        sortedStat[j] = sortedDict.get(j)
-    else:
-        sortedStat2[j] = sortedDict.get(j)
-sortedStat.update(sortedStat2)
+#so that we have a dict with presented lengths and corresponded amounts, we need to sort the data by keys
+sortedStat = dict(sorted(lenStat.items())) #create a new dict with data sorted by keys in ascending order using function sorted()
 
 #showing the stats and grafs
 for i in sortedStat:
-    print(i.rjust(3) + '|', '*' * sortedStat.get(i), ' ' * (20 - sortedStat.get(i)), sortedStat.get(i))
+    print(str(i).rjust(3) + '|', '*' * sortedStat.get(i), ' ' * (20 - sortedStat.get(i)), sortedStat.get(i))
 print('-' * n)
 while True:
     input('Press Enter to exit')
-    break
+    break 
